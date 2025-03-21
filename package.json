@@ -1,6 +1,6 @@
 {
   "name": "@super-os/super-env",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Secure .env file management with type-safety",
   "module": "index.ts",
   "type": "module",

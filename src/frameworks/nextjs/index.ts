@@ -189,14 +189,15 @@ export const env = createNextEnv({
 2. To expose client-side variables in \`next.config.js\` and automatically decrypt .env.enc:
 
 \`\`\`javascript
-import { env, withSuperEnv } from './env';
+import { withSuperEnv } from '@super-os/super-env/nextjs';
+import { env } from './env';
 
-/** @type {import('next').NextConfig} */
+
 const nextConfig = {
   env: env.clientEnvObject(),
 };
 
-module.exports = withSuperEnv(nextConfig);
+export default withSuperEnv(nextConfig);
 \`\`\`
 
 3. Use the environment variables in your app:
