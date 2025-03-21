@@ -2,4 +2,6 @@
  * Next.js integration entrypoint for super-env
  */
 
-export * from "./frameworks/nextjs";
+import { createNextEnv, withSuperEnv } from "./frameworks/nextjs";
+
+export { createNextEnv, withSuperEnv };

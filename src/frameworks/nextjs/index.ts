@@ -5,6 +5,8 @@
 import { z } from "zod";
 import { createEnv, filterClientEnv } from "../../core/env";
 import type { EnvOptions } from "../../core/env";
+import { decryptEnvFile, MASTER_KEY_FILENAME } from "../../core/encryption";
+import { existsSync } from "fs";
 
 /**
  * Configuration options for Next.js integration
@@ -18,6 +20,35 @@ export interface NextEnvOptions extends EnvOptions {
 }
 
 /**
+ * Options for wrapping Next.js config
+ */
+export interface WithSuperEnvOptions {
+  /**
+   * Path to the encrypted env file
+   * @default ".env.enc"
+   */
+  encryptedEnvPath?: string;
+
+  /**
+   * Path to output the decrypted env file
+   * @default ".env"
+   */
+  outputEnvPath?: string;
+
+  /**
+   * Path to the master key file
+   * @default "MASTER_KEY.key"
+   */
+  keyFilePath?: string;
+
+  /**
+   * Whether to skip decryption if the output file already exists
+   * @default true
+   */
+  skipIfOutputExists?: boolean;
+}
+
+/**
  * Default options for Next.js integration
  */
 const defaultNextOptions: NextEnvOptions = {
@@ -25,53 +56,110 @@ const defaultNextOptions: NextEnvOptions = {
 };
 
 /**
+ * Default options for withSuperEnv
+ */
+const defaultWithSuperEnvOptions: WithSuperEnvOptions = {
+  encryptedEnvPath: ".env.enc",
+  outputEnvPath: ".env",
+  keyFilePath: MASTER_KEY_FILENAME,
+  skipIfOutputExists: true,
+};
+
+/**
  * Create a type-safe environment configuration for a Next.js app
- * @param serverSchema - Zod schema for server-side environment variables
+ * @param schema - Schema containing client and server environment variables
  * @param options - Configuration options
- * @returns A validated environment object with server and client properties
+ * @returns A flattened validated environment object with all variables
  */
 export function createNextEnv<
   TServer extends z.ZodType,
-  TClient extends z.ZodType = z.ZodType
->(serverSchema: TServer, clientSchema?: TClient, options: NextEnvOptions = {}) {
+  TClient extends z.ZodType
+>(
+  schema: {
+    client: TClient;
+    server: TServer;
+  },
+  options: NextEnvOptions = {}
+) {
   const mergedOptions = { ...defaultNextOptions, ...options };
-  const clientPrefix = mergedOptions.clientPrefix as string;
 
   // Validate server-side environment variables
-  const serverEnv = createEnv(serverSchema, mergedOptions);
+  const serverEnv = createEnv(schema.server, mergedOptions);
 
-  // For client-side, either use provided schema or filter by prefix
-  let clientEnv: any = {};
+  // Validate client-side environment variables
+  const clientEnv = createEnv(schema.client, {
+    ...mergedOptions,
+    throwOnValidationFailure: false, // Client vars missing on server is ok
+  });
 
-  if (clientSchema) {
-    // If explicit client schema is provided, use it
-    clientEnv = createEnv(clientSchema, {
-      ...mergedOptions,
-      throwOnValidationFailure: false, // Client vars missing on server is ok
-    });
-  } else {
-    // Otherwise, filter environment variables by prefix
-    clientEnv = filterClientEnv(process.env, clientPrefix);
-  }
-
-  return {
-    server: serverEnv,
-    client: clientEnv,
-    /**
-     * Helper function to expose environment variables in next.config.js
-     * @returns Object with key-value pairs for environment variables
-     */
-    envObject() {
-      const flattened: Record<string, string> = {};
-      for (const [key, value] of Object.entries(serverEnv)) {
-        flattened[key] = String(value);
-      }
-      for (const [key, value] of Object.entries(clientEnv)) {
-        flattened[key] = String(value);
-      }
-      return flattened;
+  // Merge server and client variables into a single object
+  const combinedEnv = {
+    ...serverEnv,
+    ...clientEnv,
+    // Helper method to get client-side variables for next.config.js
+    clientEnvObject: () => {
+      return filterClientEnv(
+        { ...serverEnv, ...clientEnv },
+        mergedOptions.clientPrefix || "NEXT_PUBLIC_"
+      );
     },
   };
+
+  return combinedEnv;
+}
+
+/**
+ * Wrap Next.js config to automatically decrypt .env.enc file
+ * @param nextConfig - The Next.js configuration object
+ * @param options - Decryption options
+ * @returns The modified Next.js configuration
+ */
+export function withSuperEnv(
+  nextConfig = {},
+  options: WithSuperEnvOptions = {}
+) {
+  const mergedOptions = { ...defaultWithSuperEnvOptions, ...options };
+  const { encryptedEnvPath, outputEnvPath, keyFilePath, skipIfOutputExists } =
+    mergedOptions;
+
+  // Ensure we have the required paths
+  const inputPath =
+    encryptedEnvPath || defaultWithSuperEnvOptions.encryptedEnvPath!;
+  const outputPath = outputEnvPath || defaultWithSuperEnvOptions.outputEnvPath!;
+  const keyPath = keyFilePath || defaultWithSuperEnvOptions.keyFilePath!;
+
+  // Check if the encrypted file exists
+  if (!existsSync(inputPath)) {
+    console.warn(`[super-env] Warning: Encrypted file ${inputPath} not found`);
+    return nextConfig;
+  }
+
+  // Check if the key file exists
+  if (!existsSync(keyPath)) {
+    console.warn(`[super-env] Warning: Key file ${keyPath} not found`);
+    return nextConfig;
+  }
+
+  // Skip decryption if output exists and skipIfOutputExists is true
+  if (skipIfOutputExists && existsSync(outputPath)) {
+    console.log(
+      `[super-env] ${outputPath} already exists, skipping decryption`
+    );
+  } else {
+    try {
+      // Decrypt the file
+      console.log(`[super-env] Decrypting ${inputPath} to ${outputPath}`);
+      decryptEnvFile(inputPath, outputPath, keyPath);
+      console.log(`[super-env] Successfully decrypted environment variables`);
+    } catch (error) {
+      console.error(
+        `[super-env] Error decrypting environment variables:`,
+        error
+      );
+    }
+  }
+
+  return nextConfig;
 }
 
 /**
@@ -84,31 +172,31 @@ To use super-env with Next.js:
 
 \`\`\`typescript
 import { z } from 'zod';
-import { createNextEnv } from 'super-env/nextjs';
+import { createNextEnv } from '@super-os/super-env/nextjs';
 
-export const env = createNextEnv(
-  z.object({
+export const env = createNextEnv({
+  server: z.object({
     DATABASE_URL: z.string().url(),
     API_KEY: z.string().min(1),
     NODE_ENV: z.enum(['development', 'test', 'production']),
-    
-    // Client-side variables (automatically available to the browser)
+  }),
+  client: z.object({
     NEXT_PUBLIC_APP_URL: z.string().url(),
   })
-);
+});
 \`\`\`
 
-2. To expose client-side variables in \`next.config.js\`:
+2. To expose client-side variables in \`next.config.js\` and automatically decrypt .env.enc:
 
 \`\`\`javascript
-const { env } = require('./env');
+import { env, withSuperEnv } from './env';
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  env: env.envObject(),
+  env: env.clientEnvObject(),
 };
 
-module.exports = nextConfig;
+module.exports = withSuperEnv(nextConfig);
 \`\`\`
 
 3. Use the environment variables in your app:
@@ -116,12 +204,11 @@ module.exports = nextConfig;
 \`\`\`typescript
 import { env } from '@/env';
 
-// Server-side (e.g. API route)
-console.log(env.server.DATABASE_URL);
+// Access any variable directly
+console.log(env.DATABASE_URL);
+console.log(env.NEXT_PUBLIC_APP_URL);
 
-// Client-side (in components)
-console.log(env.client.NEXT_PUBLIC_APP_URL);
 \`\`\`
 `;
 
-export default { createNextEnv, setupInstructions };
+export const internal = { setupInstructions };

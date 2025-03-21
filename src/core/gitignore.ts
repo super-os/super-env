@@ -2,6 +2,7 @@
  * Utilities for managing .gitignore entries
  */
 
+import chalk from "chalk";
 import { readFileSync, writeFileSync, existsSync } from "fs";
 import { EOL } from "os";
 
@@ -38,7 +39,7 @@ export function addToGitignore(
   // Write back to the file if modified
   if (modified) {
     writeFileSync(gitignorePath, lines.join(EOL));
-    console.log(`Added ${entries.join(", ")} to ${gitignorePath}`);
+    console.log(chalk.green(`Added ${entries.join(", ")} to ${gitignorePath}`));
   }
 
   return modified;
@@ -60,7 +61,9 @@ export function createGitignoreIfNotExists(
 
   // Create new .gitignore file
   writeFileSync(gitignorePath, entries.join(EOL));
-  console.log(`Created ${gitignorePath} with entries: ${entries.join(", ")}`);
+  console.log(
+    chalk.green(`Created ${gitignorePath} with entries: ${entries.join(", ")}`)
+  );
 
   return true;
 }

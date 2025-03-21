@@ -151,18 +151,30 @@ Options:
 
 After running `super-env init`, follow these steps to integrate with Next.js:
 
-1. Expose client-side variables in `next.config.js`:
+1. Expose client-side variables in `next.config.js` and automatically decrypt .env.enc:
 
 ```javascript
 // next.config.js
-const { env } = require("./env");
+const { env, withSuperEnv } = require("./env");
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   env: env.envObject(),
 };
 
-module.exports = nextConfig;
+// This will automatically decrypt .env.enc to .env at build/runtime
+module.exports = withSuperEnv(nextConfig);
+```
+
+You can also customize the decryption options:
+
+```javascript
+module.exports = withSuperEnv(nextConfig, {
+  encryptedEnvPath: ".env.production.enc", // Custom encrypted file path
+  outputEnvPath: ".env.production", // Custom output path
+  keyFilePath: "keys/PRODUCTION_KEY.key", // Custom key file path
+  skipIfOutputExists: false, // Always decrypt even if output exists
+});
 ```
 
 ### Custom Environment Schema

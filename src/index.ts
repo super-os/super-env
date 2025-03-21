@@ -18,6 +18,6 @@ export const frameworks = {
    * Create a Next.js-compatible super-env instance
    */
   get nextjs() {
-    return require("./frameworks/nextjs").default;
+    return require("./nextjs");
   },
 };

@@ -9,7 +9,6 @@ import {
   scryptSync,
 } from "crypto";
 import { readFileSync, writeFileSync, existsSync } from "fs";
-import { join } from "path";
 
 /**
  * Default name for the master key file
@@ -34,7 +33,6 @@ export function saveMasterKey(
   filePath: string = MASTER_KEY_FILENAME
 ): void {
   writeFileSync(filePath, key);
-  console.log(`Master key saved to ${filePath}`);
 }
 
 /**
@@ -111,28 +109,17 @@ export function encryptEnvFile(
   outputFilePath: string = ".env.enc",
   keyFilePath: string = MASTER_KEY_FILENAME
 ): void {
-  try {
-    // Load the master key
-    const masterKey = loadMasterKey(keyFilePath);
+  // Load the master key
+  const masterKey = loadMasterKey(keyFilePath);
 
-    // Read the .env file
-    const envContent = readFileSync(inputFilePath, "utf8");
+  // Read the .env file
+  const envContent = readFileSync(inputFilePath, "utf8");
 
-    // Encrypt the content
-    const encrypted = encrypt(envContent, masterKey);
+  // Encrypt the content
+  const encrypted = encrypt(envContent, masterKey);
 
-    // Save the encrypted content to the output file
-    writeFileSync(outputFilePath, encrypted);
-
-    console.log(`Encrypted .env file saved to ${outputFilePath}`);
-  } catch (error) {
-    if (error instanceof Error) {
-      console.error(`Failed to encrypt .env file: ${error.message}`);
-    } else {
-      console.error("Failed to encrypt .env file with unknown error");
-    }
-    throw error;
-  }
+  // Save the encrypted content to the output file
+  writeFileSync(outputFilePath, encrypted);
 }
 
 /**
@@ -146,26 +133,15 @@ export function decryptEnvFile(
   outputFilePath: string = ".env",
   keyFilePath: string = MASTER_KEY_FILENAME
 ): void {
-  try {
-    // Load the master key
-    const masterKey = loadMasterKey(keyFilePath);
+  // Load the master key
+  const masterKey = loadMasterKey(keyFilePath);
 
-    // Read the encrypted .env file
-    const encryptedContent = readFileSync(inputFilePath, "utf8");
+  // Read the encrypted .env file
+  const encryptedContent = readFileSync(inputFilePath, "utf8");
 
-    // Decrypt the content
-    const decrypted = decrypt(encryptedContent, masterKey);
+  // Decrypt the content
+  const decrypted = decrypt(encryptedContent, masterKey);
 
-    // Save the decrypted content to the output file
-    writeFileSync(outputFilePath, decrypted);
-
-    console.log(`Decrypted .env file saved to ${outputFilePath}`);
-  } catch (error) {
-    if (error instanceof Error) {
-      console.error(`Failed to decrypt .env file: ${error.message}`);
-    } else {
-      console.error("Failed to decrypt .env file with unknown error");
-    }
-    throw error;
-  }
+  // Save the decrypted content to the output file
+  writeFileSync(outputFilePath, decrypted);
 }

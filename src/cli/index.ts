@@ -6,8 +6,7 @@ import { Command } from "commander";
 import { spawn } from "child_process";
 import inquirer from "inquirer";
 import chalk from "chalk";
-import { readFileSync, writeFileSync, existsSync } from "fs";
-import { resolve } from "path";
+import { writeFileSync, existsSync } from "fs";
 
 import {
   generateMasterKey,
@@ -19,7 +18,7 @@ import {
 import { createGitignoreIfNotExists } from "../core/gitignore";
 
 // Import framework-specific instructions
-import NextJS from "../frameworks/nextjs";
+import { internal as NextJS } from "../frameworks/nextjs";
 
 // Supported frameworks
 const FRAMEWORKS = {
