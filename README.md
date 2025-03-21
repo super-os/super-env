@@ -159,7 +159,7 @@ const { env } = require("./env");
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  env: env.clientEnvObject(),
+  env: env.envObject(),
 };
 
 module.exports = nextConfig;

@@ -47,6 +47,14 @@
   ],
   "author": "",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/super-os/super-env"
+  },
+  "bugs": {
+    "url": "https://github.com/super-os/super-env/issues"
+  },
+  "homepage": "https://github.com/super-os/super-env#readme",
   "dependencies": {},
   "devDependencies": {
     "chalk": "^5.3.0",

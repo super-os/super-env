@@ -58,14 +58,18 @@ export function createNextEnv<
     server: serverEnv,
     client: clientEnv,
     /**
-     * Helper function to expose client environment variables to the browser in Next.js
-     * @returns Object with key-value pairs for client-side environment variables
+     * Helper function to expose environment variables in next.config.js
+     * @returns Object with key-value pairs for environment variables
      */
-    clientEnvObject() {
-      if (clientSchema) {
-        return clientEnv;
+    envObject() {
+      const flattened: Record<string, string> = {};
+      for (const [key, value] of Object.entries(serverEnv)) {
+        flattened[key] = String(value);
       }
-      return filterClientEnv(serverEnv, clientPrefix);
+      for (const [key, value] of Object.entries(clientEnv)) {
+        flattened[key] = String(value);
+      }
+      return flattened;
     },
   };
 }
@@ -101,7 +105,7 @@ const { env } = require('./env');
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  env: env.clientEnvObject(),
+  env: env.envObject(),
 };
 
 module.exports = nextConfig;
