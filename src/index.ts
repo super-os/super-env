@@ -14,10 +14,10 @@ export * from "./core/encryption";
  * @param framework The framework to create a super-env instance for
  */
 export const frameworks = {
-  /**
-   * Create a Next.js-compatible super-env instance
-   */
-  get nextjs() {
-    return require("./nextjs");
-  },
+	/**
+	 * Create a Next.js-compatible super-env instance
+	 */
+	get nextjs() {
+		return require("./nextjs");
+	},
 };

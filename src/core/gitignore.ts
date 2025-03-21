@@ -2,9 +2,9 @@
  * Utilities for managing .gitignore entries
  */
 
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { EOL } from "node:os";
 import chalk from "chalk";
-import { readFileSync, writeFileSync, existsSync } from "fs";
-import { EOL } from "os";
 
 /**
  * Add entries to a .gitignore file
@@ -13,36 +13,36 @@ import { EOL } from "os";
  * @returns True if entries were added, false if they were already present
  */
 export function addToGitignore(
-  entries: string[],
-  gitignorePath: string = ".gitignore"
+	entries: string[],
+	gitignorePath = ".gitignore",
 ): boolean {
-  let gitignoreContent = "";
-  let modified = false;
+	let gitignoreContent = "";
+	let modified = false;
 
-  // Read existing .gitignore or create a new one
-  if (existsSync(gitignorePath)) {
-    gitignoreContent = readFileSync(gitignorePath, "utf8");
-  }
+	// Read existing .gitignore or create a new one
+	if (existsSync(gitignorePath)) {
+		gitignoreContent = readFileSync(gitignorePath, "utf8");
+	}
 
-  const lines = gitignoreContent.split(/\r?\n/);
-  const entriesSet = new Set(lines);
+	const lines = gitignoreContent.split(/\r?\n/);
+	const entriesSet = new Set(lines);
 
-  // Add each entry if it doesn't already exist
-  for (const entry of entries) {
-    if (!entriesSet.has(entry)) {
-      lines.push(entry);
-      entriesSet.add(entry);
-      modified = true;
-    }
-  }
+	// Add each entry if it doesn't already exist
+	for (const entry of entries) {
+		if (!entriesSet.has(entry)) {
+			lines.push(entry);
+			entriesSet.add(entry);
+			modified = true;
+		}
+	}
 
-  // Write back to the file if modified
-  if (modified) {
-    writeFileSync(gitignorePath, lines.join(EOL));
-    console.log(chalk.green(`Added ${entries.join(", ")} to ${gitignorePath}`));
-  }
+	// Write back to the file if modified
+	if (modified) {
+		writeFileSync(gitignorePath, lines.join(EOL));
+		console.log(chalk.green(`Added ${entries.join(", ")} to ${gitignorePath}`));
+	}
 
-  return modified;
+	return modified;
 }
 
 /**
@@ -52,18 +52,18 @@ export function addToGitignore(
  * @returns True if the file was created, false if it already existed
  */
 export function createGitignoreIfNotExists(
-  entries: string[],
-  gitignorePath: string = ".gitignore"
+	entries: string[],
+	gitignorePath = ".gitignore",
 ): boolean {
-  if (existsSync(gitignorePath)) {
-    return addToGitignore(entries, gitignorePath);
-  }
+	if (existsSync(gitignorePath)) {
+		return addToGitignore(entries, gitignorePath);
+	}
 
-  // Create new .gitignore file
-  writeFileSync(gitignorePath, entries.join(EOL));
-  console.log(
-    chalk.green(`Created ${gitignorePath} with entries: ${entries.join(", ")}`)
-  );
+	// Create new .gitignore file
+	writeFileSync(gitignorePath, entries.join(EOL));
+	console.log(
+		chalk.green(`Created ${gitignorePath} with entries: ${entries.join(", ")}`),
+	);
 
-  return true;
+	return true;
 }
