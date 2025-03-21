@@ -1,0 +1,63 @@
+{
+  "name": "@super-os/super-env",
+  "version": "0.1.2",
+  "description": "Secure .env file management with type-safety",
+  "module": "index.ts",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "super-env": "dist/cli.js"
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./nextjs": {
+      "import": "./dist/nextjs.js",
+      "require": "./dist/nextjs.js",
+      "types": "./dist/nextjs.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "rm -rf dist && bun run build:lib && bun run build:cli && bun run build:nextjs && bun run build:types",
+    "build:lib": "bun build ./src/index.ts --outdir ./dist --target node",
+    "build:cli": "bun build ./src/cli.ts --outdir ./dist --target node && chmod +x ./dist/cli.js",
+    "build:nextjs": "bun build ./src/nextjs.ts --outdir ./dist --target node",
+    "build:types": "tsc --project tsconfig.build.json",
+    "dev": "bun run --watch src/index.ts",
+    "test": "bun test",
+    "prepublishOnly": "bun run build"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "keywords": [
+    "env",
+    "environment",
+    "variables",
+    "dotenv",
+    "encryption",
+    "nextjs",
+    "zod",
+    "typescript"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {
+    "chalk": "^5.3.0",
+    "commander": "^12.0.0",
+    "dotenv": "^16.4.5",
+    "inquirer": "^9.2.15",
+    "@types/bun": "latest",
+    "@types/inquirer": "^9.0.7"
+  },
+  "peerDependencies": {
+    "typescript": "^5",
+    "zod": "^3"
+  }
+}
