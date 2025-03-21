@@ -3,7 +3,7 @@
  */
 
 import { z } from "zod";
-import { createEnv, filterClientEnv } from "../../core/env";
+import { createEnv } from "../../core/env";
 import type { EnvOptions } from "../../core/env";
 import { decryptEnvFile, MASTER_KEY_FILENAME } from "../../core/encryption";
 import { existsSync } from "fs";
@@ -96,13 +96,6 @@ export function createNextEnv<
   const combinedEnv = {
     ...serverEnv,
     ...clientEnv,
-    // Helper method to get client-side variables for next.config.js
-    clientEnvObject: () => {
-      return filterClientEnv(
-        { ...serverEnv, ...clientEnv },
-        mergedOptions.clientPrefix || "NEXT_PUBLIC_"
-      );
-    },
   };
 
   return combinedEnv;
@@ -141,11 +134,7 @@ export function withSuperEnv(
   }
 
   // Skip decryption if output exists and skipIfOutputExists is true
-  if (skipIfOutputExists && existsSync(outputPath)) {
-    console.log(
-      `[super-env] ${outputPath} already exists, skipping decryption`
-    );
-  } else {
+  if (!(skipIfOutputExists && existsSync(outputPath))) {
     try {
       // Decrypt the file
       console.log(`[super-env] Decrypting ${inputPath} to ${outputPath}`);
@@ -186,15 +175,15 @@ export const env = createNextEnv({
 });
 \`\`\`
 
-2. To expose client-side variables in \`next.config.js\` and automatically decrypt .env.enc:
+2. Automatically decrypt .env.enc in \`next.config.js\`:
 
 \`\`\`javascript
 import { withSuperEnv } from '@super-os/super-env/nextjs';
-import { env } from './env';
+
 
 
 const nextConfig = {
-  env: env.clientEnvObject(),
+  // ...
 };
 
 export default withSuperEnv(nextConfig);
