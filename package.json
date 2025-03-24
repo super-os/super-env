@@ -30,7 +30,8 @@
 		"dev": "bun run --watch src/index.ts",
 		"test": "bun test",
 		"prepublishOnly": "bun run build",
-		"format": "biome check --write"
+		"format": "biome check --write",
+		"cli": "bun run src/cli"
 	},
 	"files": ["dist", "README.md"],
 	"keywords": [

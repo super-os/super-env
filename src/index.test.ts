@@ -1,7 +1,3 @@
-/**
- * Basic tests for super-env
- */
-
 import { describe, expect, test } from "bun:test";
 import { existsSync, unlinkSync, writeFileSync } from "node:fs";
 import { z } from "zod";
@@ -37,7 +33,10 @@ describe("Environment variable validation", () => {
 		process.env.CLIENT_TEST = "client-value";
 		process.env.SERVER_TEST = "server-value";
 
-		const clientEnv = filterClientEnv(process.env, "CLIENT_");
+		const clientEnv = filterClientEnv(
+			process.env as Record<string, string>,
+			"CLIENT_",
+		);
 
 		expect(clientEnv.CLIENT_TEST).toBe("client-value");
 		expect(clientEnv.SERVER_TEST).toBeUndefined();

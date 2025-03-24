@@ -10,13 +10,7 @@ import { type EnvOptions, createEnv } from "../../core/env";
 /**
  * Configuration options for Next.js integration
  */
-export interface NextEnvOptions extends EnvOptions {
-	/**
-	 * Prefix for client-side environment variables
-	 * @default "NEXT_PUBLIC_"
-	 */
-	clientPrefix?: string;
-}
+export interface NextEnvOptions extends EnvOptions {}
 
 /**
  * Options for wrapping Next.js config
@@ -48,13 +42,6 @@ export interface WithSuperEnvOptions {
 }
 
 /**
- * Default options for Next.js integration
- */
-const defaultNextOptions: NextEnvOptions = {
-	clientPrefix: "NEXT_PUBLIC_",
-};
-
-/**
  * Default options for withSuperEnv
  */
 const defaultWithSuperEnvOptions: WithSuperEnvOptions = {
@@ -80,14 +67,12 @@ export function createNextEnv<
 	},
 	options: NextEnvOptions = {},
 ) {
-	const mergedOptions = { ...defaultNextOptions, ...options };
-
 	// Validate server-side environment variables
-	const serverEnv = createEnv(schema.server, mergedOptions);
+	const serverEnv = createEnv(schema.server, options);
 
 	// Validate client-side environment variables
 	const clientEnv = createEnv(schema.client, {
-		...mergedOptions,
+		...options,
 		throwOnValidationFailure: false, // Client vars missing on server is ok
 	});
 
